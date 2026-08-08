@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum FoodStatus {
+  AVAILABLE
+  MATCHED
+  EXPIRED
+  DISTRIBUTED
+}
+
+enum RecipientType {
+  PANTI
+  PENERIMA
+}
+
+model Kitchen {
+  id        String      @id @default(uuid())
+  name      String
+  address   String
+  latitude  Float
+  longitude Float
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  
+  foodStocks FoodStock[]
+}
+
+model FoodStock {
+  id           String     @id @default(uuid())
+  kitchenId    String
+  menuName     String
+  portionCount Int
+  cookedAt     DateTime?
+  safeUntil    DateTime?
+  status       FoodStatus @default(AVAILABLE)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  kitchen      Kitchen    @relation(fields: [kitchenId], references: [id])
+}
+
+model Recipient {
+  id        String        @id @default(uuid())
+  name      String
+  type      RecipientType
+  address   String
+  latitude  Float
+  longitude Float
+  capacity  Int
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
