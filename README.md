@@ -1,47 +1,38 @@
 # CoreMBG Backend
 
-Backend API for Makan Bergizi Gratis (MBG) System built with Node.js, Express, TypeScript, PostgreSQL, and Prisma.
+[![MBG CI](https://img.shields.io/badge/MBG-API_Operational-success?style=flat-square)](#)
 
-## Tech Stack
-- Node.js & Express.js
-- TypeScript & ES Modules
-- PostgreSQL & Prisma ORM
-- Zod for Validation
-- Multer for File Uploads
+CoreMBG (Makan Bergizi Gratis) Backend dirancang untuk mengelola, mencatat, dan memantau distribusi logistik makanan dari Dapur-Dapur relawan kepada Penerima/Panti Asuhan, memastikan makanan terdistribusi efisien, sehat, dan tidak melewati batas waktu kelayakan (kedaluwarsa) konsumsi.
 
-## Setup
+Backend ini menonjolkan fitur unggulan seperti **Algoritma Matching Jarak Terdekat (Haversine)** dan otomasi pembacaan stempel waktu kelayakan makanan menggunakan fitur **OCR Labeling**.
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
+# Contributing
 
-2. Environment Variables:
-   Copy `.env.example` to `.env` and fill in your details, including `DATABASE_URL`.
+- [Submit issues](https://github.com/octaoss/corembg-gemastik/issues) and help verify fixes as they are checked in.
+- Review the open PRs.
+- Contribute features and fixes.
+- Contribute to the documentation.
 
-3. Database Migration & Seeding:
-   ```bash
-   npm run prisma:migrate
-   npm run prisma:generate
-   npm run prisma:seed
-   ```
+> [!NOTE]
+> Proyek ini menggunakan stack Node.js, Express, TypeScript, dan Prisma. Kami sangat terbuka jika Anda ingin menambahkan provider OCR (seperti Google Cloud Vision) pada abstraksi OCRService kami.
 
-4. Run locally:
-   ```bash
-   npm run dev
-   ```
+# Documentation
 
-5. Build for production:
-   ```bash
-   npm run build
-   ```
+Semua dokumentasi endpoint, kapabilitas, payload, dan cara kerja sistem CoreMBG didokumentasikan di folder `/docs`.
 
-## Vercel Deployment
+### Guides
+- [API Health & Lifecycle](./docs/KITCHENS.md) - *(Start Here)*
+- [Manajemen Dapur (Kitchens)](./docs/KITCHENS.md)
+- [Pencatatan Logistik & Expiration (Foods)](./docs/FOODS.md)
+- [Entitas Penerima Bantuan (Recipients)](./docs/RECIPIENTS.md)
+- [Algoritma Radius Haversine (Matching)](./docs/MATCHING.md)
+- [Mockup Tesseract / Visi Komputer (OCR)](./docs/OCR.md)
 
-This project is compatible with Vercel deployment. 
+### Deployment
+Aplikasi backend ini dirancang _Vercel-ready_ menggunakan Edge Functions dan ES Modules.
+- [Konfigurasi Vercel](./vercel.json)
+- [Endpoint Utama Serverless](./api/index.ts)
 
-1. Ensure your PostgreSQL database is hosted externally (e.g., Supabase, Neon).
-2. Configure Environment Variables in Vercel.
-3. Deploy via Vercel CLI or GitHub Integration.
+> [!IMPORTANT]
+> **Experimental:** Fitur OCR Service saat ini di-mock untuk kepentingan development lokal agar tidak memakan limit biaya API external. Abstraksi sudah tersedia untuk langsung dikoneksikan ke Provider OCR asli untuk production level.
 
-Vercel will use `api/index.ts` and `vercel.json` to handle the serverless functions.
