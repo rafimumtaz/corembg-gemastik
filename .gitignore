@@ -1,3 +1,4 @@
 dist
+context
 node_modules
 .env
