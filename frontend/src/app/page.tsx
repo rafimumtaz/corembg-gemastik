@@ -630,51 +630,67 @@ export default function Home() {
                 {/* Match Result Notification Card */}
                 {matchResult && (
                   <div>
-                    {matchResult.matchFound ? (
-                      <div className="rounded-3xl border border-cyan-500/30 bg-gradient-to-b from-slate-900 to-slate-950 p-6 shadow-2xl relative overflow-hidden space-y-4 animate-in fade-in duration-300">
-                        <div className="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-extrabold px-3 py-1 rounded-bl-2xl uppercase tracking-wider">
-                          Match Found
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-600 text-white shadow-lg shadow-cyan-600/30">
-                            <Truck className="h-6 w-6" />
-                          </div>
-                          <div>
-                            <span className="text-xs font-bold text-cyan-400">Notifikasi Makanan Datang!</span>
-                            <h4 className="font-extrabold text-slate-100 text-base">
-                              {matchResult.menuName || 'Nasi Masakan Bergizi'}
-                            </h4>
-                          </div>
-                        </div>
+                    {(matchResult.matchFound || (matchResult.matches && matchResult.matches.length > 0)) ? (
+                      <div className="space-y-4">
+                        {(matchResult.matches || [matchResult]).map((m: any, idx: number) => {
+                          const fId = m.foodId || m.id || matchResult.foodId;
+                          const mName = m.menuName || matchResult.menuName || 'Nasi Masakan Bergizi';
+                          const kName = m.kitchenName || matchResult.kitchenName || 'Dapur MBG';
+                          const dist = m.distanceKm || matchResult.distanceKm || 0;
+                          const portions = m.portionCount || matchResult.portionCount || 100;
+                          const estMinutes = m.estimatedTravelTimeMinutes || Math.round(dist * 3) + 5;
 
-                        <div className="space-y-2 border-t border-b border-slate-800 py-3 text-xs text-slate-300">
-                          <div className="flex justify-between">
-                            <span className="text-slate-400">Pengirim (Dapur):</span>
-                            <span className="font-bold text-slate-100">{matchResult.kitchenName}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-slate-400">Jumlah Porsi:</span>
-                            <span className="font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md border border-cyan-500/20">
-                              {matchResult.portionCount || 100} Porsi
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-slate-400">Jarak Ke Lokasi:</span>
-                            <span className="font-bold text-slate-100">{matchResult.distanceKm?.toFixed(2)} KM</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-slate-400">Estimasi Waktu Kirim:</span>
-                            <span className="font-bold text-slate-100">~{matchResult.estimatedTravelTimeMinutes} Menit</span>
-                          </div>
-                        </div>
+                          return (
+                            <div
+                              key={fId || idx}
+                              className="rounded-3xl border border-cyan-500/30 bg-gradient-to-b from-slate-900 to-slate-950 p-6 shadow-2xl relative overflow-hidden space-y-4 animate-in fade-in duration-300"
+                            >
+                              <div className="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-extrabold px-3 py-1 rounded-bl-2xl uppercase tracking-wider">
+                                {idx === 0 ? 'Terdekat (Top Match)' : `Opsi #${idx + 1}`}
+                              </div>
+                              <div className="flex items-center space-x-3">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-600 text-white shadow-lg shadow-cyan-600/30">
+                                  <Truck className="h-6 w-6" />
+                                </div>
+                                <div>
+                                  <span className="text-xs font-bold text-cyan-400">Notifikasi Makanan Datang!</span>
+                                  <h4 className="font-extrabold text-slate-100 text-base">
+                                    {mName}
+                                  </h4>
+                                </div>
+                              </div>
 
-                        <button
-                          onClick={() => claimMatchedFood(matchResult.foodId)}
-                          className="w-full flex items-center justify-center space-x-2 rounded-2xl bg-emerald-600 py-3.5 text-sm font-semibold text-white shadow-lg shadow-emerald-600/20 hover:bg-emerald-500 transition-all"
-                        >
-                          <CheckCircle2 className="h-4 w-4" />
-                          <span>Klaim & Terima Makanan Ini</span>
-                        </button>
+                              <div className="space-y-2 border-t border-b border-slate-800 py-3 text-xs text-slate-300">
+                                <div className="flex justify-between">
+                                  <span className="text-slate-400">Pengirim (Dapur):</span>
+                                  <span className="font-bold text-slate-100">{kName}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-slate-400">Jumlah Porsi:</span>
+                                  <span className="font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md border border-cyan-500/20">
+                                    {portions} Porsi
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-slate-400">Jarak Ke Lokasi:</span>
+                                  <span className="font-bold text-slate-100">{dist.toFixed(2)} KM</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-slate-400">Estimasi Waktu Kirim:</span>
+                                  <span className="font-bold text-slate-100">~{estMinutes} Menit</span>
+                                </div>
+                              </div>
+
+                              <button
+                                onClick={() => claimMatchedFood(fId)}
+                                className="w-full flex items-center justify-center space-x-2 rounded-2xl bg-emerald-600 py-3.5 text-sm font-semibold text-white shadow-lg shadow-emerald-600/20 hover:bg-emerald-500 transition-all"
+                              >
+                                <CheckCircle2 className="h-4 w-4" />
+                                <span>Klaim & Terima Makanan Ini</span>
+                              </button>
+                            </div>
+                          );
+                        })}
                       </div>
                     ) : (
                       <div className="rounded-3xl border border-rose-500/30 bg-rose-500/10 p-6 text-center text-xs text-rose-300 space-y-2">

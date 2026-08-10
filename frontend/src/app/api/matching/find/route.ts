@@ -68,11 +68,28 @@ export async function POST(req: Request) {
         .filter((item) => item.distanceKm <= radius)
         .sort((a, b) => a.distanceKm - b.distanceKm);
 
+      const hasMatches = matches.length > 0;
+      const topMatch = matches[0];
+
       return NextResponse.json({
         success: true,
         data: {
+          matchFound: hasMatches,
           recipient,
           matches,
+          ...(topMatch
+            ? {
+                foodId: topMatch.foodId,
+                menuName: topMatch.menuName,
+                portionCount: topMatch.portionCount,
+                kitchenName: topMatch.kitchenName,
+                kitchenAddress: topMatch.kitchenAddress,
+                kitchenLatitude: topMatch.kitchenLat,
+                kitchenLongitude: topMatch.kitchenLng,
+                distanceKm: topMatch.distanceKm,
+                estimatedTravelTimeMinutes: Math.round(topMatch.distanceKm * 3) + 5,
+              }
+            : {}),
         },
       });
     }
@@ -117,6 +134,7 @@ export async function POST(req: Request) {
       return NextResponse.json({
         success: true,
         data: {
+          matchFound: matches.length > 0,
           food,
           matches,
         },
