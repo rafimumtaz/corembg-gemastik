@@ -2,10 +2,9 @@
   "name": "frontend",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate --schema=../prisma/schema.prisma && next build",
     "start": "next start",
-    "lint": "next lint",
-    "postinstall": "prisma generate --schema=../prisma/schema.prisma"
+    "lint": "next lint"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.9.1",
