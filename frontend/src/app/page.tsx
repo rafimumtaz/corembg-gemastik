@@ -237,9 +237,6 @@ export default function Home() {
                 <h1 className="text-xl font-black tracking-tight text-slate-100">
                   Core<span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">MBG</span>
                 </h1>
-                <span className="inline-flex items-center rounded-full bg-blue-500/10 px-2.5 py-0.5 text-xs font-bold text-blue-400 border border-blue-500/20">
-                  Next.js App
-                </span>
               </div>
               <p className="text-xs text-slate-400 font-medium">Sistem Distribusi Makanan Bergizi & Matching</p>
             </div>
@@ -271,16 +268,6 @@ export default function Home() {
               <span>Penerima (Panti / Posyandu)</span>
             </button>
           </div>
-
-          {/* Connection Badge */}
-          <div className="hidden md:flex items-center space-x-2 text-xs font-semibold text-slate-400 bg-slate-900/80 px-3 py-1.5 rounded-full border border-slate-800">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-            </span>
-            <span className="text-slate-300">Supabase DB Connected</span>
-          </div>
-
         </div>
       </header>
 
