@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoreMBG - Platform Distribusi Makanan Bergizi & Matching</title>
+  
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Leaflet Map CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .leaflet-container { font-family: inherit; z-index: 10; border-radius: 1rem; }
+    .distance-tooltip {
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(37, 99, 235, 0.3);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      padding: 6px 12px;
+      font-weight: 600;
+      color: #1e3a8a;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900 antialiased flex flex-col">
+
+  <!-- TOP NAVBAR -->
+  <header class="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/80 backdrop-blur-md">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center space-x-3">
+        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-500 shadow-md shadow-blue-500/20 text-white">
+          <i data-lucide="utensils" class="h-6 w-6"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 className="text-xl font-bold tracking-tight text-slate-900">
+              Core<span class="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">MBG</span>
+            </h1>
+            <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-700/10">v1.0</span>
+          </div>
+          <p class="text-xs text-slate-500 font-medium">Sistem Distribusi Makanan Bergizi & Matching</p>
+        </div>
+      </div>
+
+      <!-- Role Switcher Tabs -->
+      <div class="flex items-center rounded-xl bg-slate-100/90 p-1 text-slate-600 border border-slate-200/60 shadow-inner">
+        <button id="btnRoleDapur" onclick="setRole('DAPUR')" class="flex items-center space-x-2 rounded-lg px-4 py-2 text-xs sm:text-sm font-semibold transition-all duration-200 bg-white text-blue-600 shadow-sm ring-1 ring-black/5">
+          <i data-lucide="utensils" class="h-4 w-4 text-blue-600"></i>
+          <span>Dapur MBG (Pengirim)</span>
+        </button>
+
+        <button id="btnRoleRecipient" onclick="setRole('RECIPIENT')" class="flex items-center space-x-2 rounded-lg px-4 py-2 text-xs sm:text-sm font-semibold transition-all duration-200 text-slate-600 hover:text-slate-900">
+          <i data-lucide="heart-handshake" class="h-4 w-4 text-slate-400"></i>
+          <span>Penerima (Panti / Posyandu)</span>
+        </button>
+      </div>
+
+      <!-- Health Badge -->
+      <div class="hidden sm:flex items-center space-x-2 text-xs font-medium text-slate-500">
+        <span class="relative flex h-2.5 w-2.5">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+        </span>
+        <span class="text-slate-700 font-semibold">Supabase DB Connected</span>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE CONTAINER -->
+  <main class="flex-1 mx-auto max-w-7xl w-full px-4 py-8 sm:px-6 lg:px-8">
+    
+    <!-- DAPUR MBG WORKSPACE VIEW -->
+    <div id="viewDapur" class="space-y-8 animate-in fade-in duration-300">
+      
+      <!-- Top Banner -->
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 rounded-2xl bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 p-6 text-white shadow-xl shadow-blue-900/10">
+        <div>
+          <span class="rounded-full bg-white/20 px-3 py-1 text-xs font-medium backdrop-blur-md">Dapur MBG (Sender Workspace)</span>
+          <h2 class="mt-2 text-2xl font-bold tracking-tight">Manajemen Stok & Distribusi Makanan</h2>
+          <p class="mt-1 text-xs sm:text-sm text-blue-100">Catat porsi makanan bergizi, potret label scan OCR otomatis, dan pantau kedaluwarsa realtime.</p>
+        </div>
+
+        <!-- Kitchen Picker -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white/10 p-3 rounded-xl backdrop-blur-md border border-white/20">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="building-2" class="h-5 w-5 text-blue-200"></i>
+            <select id="selectKitchen" onchange="onKitchenSelectChange()" class="bg-transparent font-semibold text-white text-sm focus:outline-none cursor-pointer border-b border-white/40 pb-0.5">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+
+          <button onclick="openKitchenModal()" class="flex items-center justify-center space-x-1.5 rounded-lg bg-white px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-50 transition-colors shadow-sm">
+            <i data-lucide="plus" class="h-4 w-4"></i>
+            <span>Dapur Baru</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Layout Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Column: Input Form Card -->
+        <div class="lg:col-span-5 space-y-6">
+          <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+            
+            <div class="flex items-center space-x-3 mb-6">
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                <i data-lucide="utensils" class="h-5 w-5"></i>
+              </div>
+              <div>
+                <h3 class="font-bold text-slate-900">Input Stok Masakan Baru</h3>
+                <p class="text-xs text-slate-500">Isi porsi & waktu masak atau potret label</p>
+              </div>
+            </div>
+
+            <form id="formCreateFood" onsubmit="handleCreateFood(event)" class="space-y-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Menu / Masakan</label>
+                <input type="text" id="inputMenuName" required placeholder="Misal: Nasi Ayam Geprek + Sayur" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Jumlah Porsi (Box)</label>
+                <input type="number" id="inputPortionCount" min="1" value="100" required class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="text-xs font-semibold text-slate-700">Waktu Selesai Masak (Cooked At)</label>
+                  <button type="button" onclick="openOcrModal()" class="flex items-center space-x-1 text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors">
+                    <i data-lucide="camera" class="h-3.5 w-3.5"></i>
+                    <i data-lucide="sparkles" class="h-3 w-3 text-amber-500"></i>
+                    <span>Scan OCR Kamera</span>
+                  </button>
+                </div>
+                <input type="datetime-local" id="inputCookedAt" required class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+                <p id="ocrNotice" class="hidden mt-1.5 text-xs text-emerald-600 font-medium flex items-center space-x-1">
+                  <i data-lucide="check-circle-2" class="h-3.5 w-3.5"></i>
+                  <span id="ocrNoticeText"></span>
+                </p>
+              </div>
+
+              <button type="submit" id="btnSubmitFood" class="w-full flex items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-3 text-sm font-semibold text-white shadow-md shadow-blue-600/20 hover:from-blue-700 hover:to-indigo-700 transition-all">
+                <i data-lucide="plus" class="h-4 w-4"></i>
+                <span>Simpan Stok Masakan</span>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Right Column: Inventory List Card -->
+        <div class="lg:col-span-7 space-y-4">
+          <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+            
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
+              <div>
+                <h3 class="font-bold text-slate-900 flex items-center space-x-2">
+                  <i data-lucide="layers" class="h-5 w-5 text-blue-600"></i>
+                  <span>Daftar Stok Makanan Dapur</span>
+                </h3>
+                <p id="subKitchenName" class="text-xs text-slate-500">Memuat stok...</p>
+              </div>
+
+              <div class="flex items-center space-x-2">
+                <button onclick="fetchFoods()" class="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors" title="Refresh Data">
+                  <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                </button>
+
+                <select id="selectFilterStatus" onchange="renderFoodList()" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 focus:outline-none">
+                  <option value="ALL">Semua Status</option>
+                  <option value="AVAILABLE">Tersedia (AVAILABLE)</option>
+                  <option value="MATCHED">Matched (Penerima)</option>
+                  <option value="DISTRIBUTED">Tersalurkan (DISTRIBUTED)</option>
+                  <option value="EXPIRED">Kedaluwarsa (EXPIRED)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Food Cards Container -->
+            <div id="foodListContainer" class="space-y-3">
+              <!-- Dynamically populated -->
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RECIPIENT WORKSPACE VIEW -->
+    <div id="viewRecipient" class="hidden space-y-8 animate-in fade-in duration-300">
+      
+      <!-- Top Banner -->
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 rounded-2xl bg-gradient-to-r from-sky-600 via-blue-600 to-cyan-700 p-6 text-white shadow-xl shadow-sky-900/10">
+        <div>
+          <span class="rounded-full bg-white/20 px-3 py-1 text-xs font-medium backdrop-blur-md">Workspace Penerima (Panti / Posyandu)</span>
+          <h2 class="mt-2 text-2xl font-bold tracking-tight">Klaim Makanan & Pantau Jarak Dapur</h2>
+          <p class="mt-1 text-xs sm:text-sm text-sky-100">Dapatkan notifikasi makanan bergizi terdekat yang siap disalurkan dan lihat rute jarak Haversine.</p>
+        </div>
+
+        <!-- Recipient Picker -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white/10 p-3 rounded-xl backdrop-blur-md border border-white/20">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="heart-handshake" class="h-5 w-5 text-sky-200"></i>
+            <select id="selectRecipient" onchange="onRecipientSelectChange()" class="bg-transparent font-semibold text-white text-sm focus:outline-none cursor-pointer border-b border-white/40 pb-0.5">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+
+          <button onclick="openRecipientModal()" class="flex items-center justify-center space-x-1.5 rounded-lg bg-white px-3 py-2 text-xs font-semibold text-sky-700 hover:bg-sky-50 transition-colors shadow-sm">
+            <i data-lucide="plus" class="h-4 w-4"></i>
+            <span>Penerima Baru</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Layout Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Column: Match Finder & Notification Card -->
+        <div class="lg:col-span-5 space-y-6">
+          
+          <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+            <div class="flex items-center space-x-3 mb-4">
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
+                <i data-lucide="navigation" class="h-5 w-5"></i>
+              </div>
+              <div>
+                <h3 class="font-bold text-slate-900">Pencarian Makanan Terdekat</h3>
+                <p class="text-xs text-slate-500">Algoritma Haversine Radius Matching</p>
+              </div>
+            </div>
+
+            <!-- Radius Slider -->
+            <div class="space-y-2 mb-6">
+              <div class="flex justify-between text-xs font-semibold text-slate-700">
+                <span>Radius Toleransi Maksimum</span>
+                <span id="txtRadiusValue" class="text-blue-600 font-bold">5.0 KM</span>
+              </div>
+              <input type="range" id="inputRadiusSlider" min="1" max="15" step="0.5" value="5" oninput="updateRadiusLabel(this.value)" class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-blue-600" />
+              <div class="flex justify-between text-[10px] text-slate-400">
+                <span>1 KM</span>
+                <span>5 KM (Default)</span>
+                <span>15 KM</span>
+              </div>
+            </div>
+
+            <button onclick="handleFindMatches()" id="btnFindMatch" class="w-full flex items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 py-3 text-sm font-semibold text-white shadow-md shadow-sky-600/20 hover:from-sky-700 hover:to-blue-700 transition-all">
+              <i data-lucide="bell" class="h-4 w-4"></i>
+              <span>Cari Makanan Tersedia</span>
+            </button>
+          </div>
+
+          <!-- Notification Output Card -->
+          <div id="matchNoticeContainer">
+            <!-- Dynamically populated -->
+          </div>
+
+        </div>
+
+        <!-- Right Column: Distance Map Card -->
+        <div class="lg:col-span-7">
+          <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="font-bold text-slate-900 flex items-center space-x-2">
+                  <i data-lucide="map-pin" class="h-5 w-5 text-sky-600"></i>
+                  <span>Peta Jarak Dapur MBG ke Penerima</span>
+                </h3>
+                <p class="text-xs text-slate-500">Visualisasi lokasi, radius coverage, dan rute Haversine</p>
+              </div>
+              <span id="badgeActiveRecipientName" class="text-xs font-semibold text-slate-600 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">-</span>
+            </div>
+
+            <!-- Leaflet Map Container -->
+            <div id="map" class="w-full h-[380px] rounded-2xl border border-slate-200 shadow-inner"></div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- MODALS -->
+
+  <!-- OCR CAMERA MODAL -->
+  <div id="modalOcr" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+    <div class="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-900/10">
+      <div class="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-blue-50 to-indigo-50/50 px-6 py-4">
+        <div class="flex items-center space-x-2">
+          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white shadow-md">
+            <i data-lucide="sparkles" class="h-4 w-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900">Scan Label Waktu Masak (OCR)</h3>
+            <p class="text-xs text-slate-500">Potret atau unggah foto label masakan</p>
+          </div>
+        </div>
+        <button onclick="closeOcrModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-white hover:text-slate-600">
+          <i data-lucide="x" class="h-5 w-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <div class="relative aspect-video w-full overflow-hidden rounded-xl bg-slate-900 flex items-center justify-center">
+          <video id="videoOcr" autoplay playsinline muted class="h-full w-full object-cover hidden"></video>
+          <div id="cameraPlaceholder" class="p-6 text-center text-slate-400">
+            <i data-lucide="camera" class="mx-auto h-10 w-10 mb-2 opacity-50"></i>
+            <p class="text-xs">Kamera aktif atau pilih file foto label di bawah</p>
+          </div>
+          <canvas id="canvasOcr" class="hidden"></canvas>
+        </div>
+
+        <div class="flex gap-2">
+          <button onclick="captureCameraSnapshot()" class="flex-1 flex items-center justify-center space-x-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700">
+            <i data-lucide="camera" class="h-4 w-4"></i>
+            <span>Potret Foto</span>
+          </button>
+          
+          <label class="flex-1 flex items-center justify-center space-x-2 rounded-xl bg-slate-100 border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-200 cursor-pointer">
+            <i data-lucide="upload" class="h-4 w-4"></i>
+            <span>Unggah File</span>
+            <input type="file" accept="image/*" onchange="handleOcrFileSelect(event)" class="hidden" />
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KITCHEN REGISTRATION MODAL -->
+  <div id="modalKitchen" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+    <div class="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-900/10">
+      <div class="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-blue-50 to-indigo-50/50 px-6 py-4">
+        <div class="flex items-center space-x-2">
+          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white shadow-md">
+            <i data-lucide="building-2" class="h-4 w-4"></i>
+          </div>
+          <h3 class="font-bold text-slate-900">Registrasi Dapur MBG Baru</h3>
+        </div>
+        <button onclick="closeKitchenModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-white hover:text-slate-600">
+          <i data-lucide="x" class="h-5 w-5"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleRegisterKitchen(event)" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Dapur</label>
+          <input type="text" id="newKitchenName" required placeholder="Dapur MBG Sidoarjo Central" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Alamat Lengkap</label>
+          <textarea id="newKitchenAddress" required rows="2" placeholder="Jl. Pahlawan No. 1, Sidoarjo" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Latitude</label>
+            <input type="number" step="any" id="newKitchenLat" value="-7.45" required class="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Longitude</label>
+            <input type="number" step="any" id="newKitchenLng" value="112.71" required class="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-sm" />
+          </div>
+        </div>
+        <button type="submit" class="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700">Simpan Dapur</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- RECIPIENT REGISTRATION MODAL -->
+  <div id="modalRecipient" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+    <div class="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-900/10">
+      <div class="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-blue-50 to-cyan-50/50 px-6 py-4">
+        <div class="flex items-center space-x-2">
+          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white shadow-md">
+            <i data-lucide="heart-handshake" class="h-4 w-4"></i>
+          </div>
+          <h3 class="font-bold text-slate-900">Registrasi Penerima Baru</h3>
+        </div>
+        <button onclick="closeRecipientModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-white hover:text-slate-600">
+          <i data-lucide="x" class="h-5 w-5"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleRegisterRecipient(event)" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Panti / Posyandu</label>
+          <input type="text" id="newRecipientName" required placeholder="Panti Asuhan Kasih Ibu" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Tipe</label>
+            <select id="newRecipientType" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm">
+              <option value="PANTI">PANTI</option>
+              <option value="PENERIMA">PENERIMA</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Kapasitas</label>
+            <input type="number" id="newRecipientCapacity" value="50" required class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Alamat Lengkap</label>
+          <textarea id="newRecipientAddress" required rows="2" placeholder="Jl. Merdeka No. 10" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Latitude</label>
+            <input type="number" step="any" id="newRecipientLat" value="-7.44" required class="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Longitude</label>
+            <input type="number" step="any" id="newRecipientLng" value="112.72" required class="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-sm" />
+          </div>
+        </div>
+        <button type="submit" class="w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700">Simpan Penerima</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC JS -->
+  <script>
+    // State
+    let activeRole = 'DAPUR';
+    let kitchens = [];
+    let recipients = [];
+    let foods = [];
+    let activeKitchenId = '';
+    let activeRecipientId = '';
+    let currentMatchResult = null;
+    let mapInstance = null;
+    let cameraStream = null;
+
+    // Initialize Page
+    document.addEventListener('DOMContentLoaded', async () => {
+      lucide.createIcons();
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      document.getElementById('inputCookedAt').value = now.toISOString().slice(0, 16);
+
+      await fetchKitchens();
+      await fetchFoods();
+      await fetchRecipients();
+
+      setInterval(renderFoodList, 10000); // refresh countdown timers
+    });
+
+    // Role Switching
+    function setRole(role) {
+      activeRole = role;
+      const btnD = document.getElementById('btnRoleDapur');
+      const btnR = document.getElementById('btnRoleRecipient');
+      const viewD = document.getElementById('viewDapur');
+      const viewR = document.getElementById('viewRecipient');
+
+      if (role === 'DAPUR') {
+        btnD.className = "flex items-center space-x-2 rounded-lg px-4 py-2 text-xs sm:text-sm font-semibold transition-all duration-200 bg-white text-blue-600 shadow-sm ring-1 ring-black/5";
+        btnR.className = "flex items-center space-x-2 rounded-lg px-4 py-2 text-xs sm:text-sm font-semibold transition-all duration-200 text-slate-600 hover:text-slate-900";
+        viewD.classList.remove('hidden');
+        viewR.classList.add('hidden');
+      } else {
+        btnR.className = "flex items-center space-x-2 rounded-lg px-4 py-2 text-xs sm:text-sm font-semibold transition-all duration-200 bg-white text-blue-600 shadow-sm ring-1 ring-black/5";
+        btnD.className = "flex items-center space-x-2 rounded-lg px-4 py-2 text-xs sm:text-sm font-semibold transition-all duration-200 text-slate-600 hover:text-slate-900";
+        viewR.classList.remove('hidden');
+        viewD.classList.add('hidden');
+        initOrUpdateMap();
+      }
+    }
+
+    // KITCHENS API & UI
+    async function fetchKitchens() {
+      try {
+        const res = await fetch('/api/kitchens');
+        const json = await res.json();
+        if (json.success) {
+          kitchens = json.data;
+          const select = document.getElementById('selectKitchen');
+          select.innerHTML = kitchens.map(k => `<option value="${k.id}">${k.name}</option>`).join('');
+          if (kitchens.length > 0) {
+            activeKitchenId = kitchens[0].id;
+          }
+          renderSubKitchenName();
+        }
+      } catch (err) { console.error('Error fetching kitchens:', err); }
+    }
+
+    function onKitchenSelectChange() {
+      activeKitchenId = document.getElementById('selectKitchen').value;
+      renderSubKitchenName();
+      renderFoodList();
+    }
+
+    function renderSubKitchenName() {
+      const k = kitchens.find(x => x.id === activeKitchenId);
+      document.getElementById('subKitchenName').innerText = k ? `Stok di ${k.name}` : 'Semua Dapur';
+    }
+
+    // FOODS API & UI
+    async function fetchFoods() {
+      try {
+        const res = await fetch('/api/foods');
+        const json = await res.json();
+        if (json.success) {
+          foods = json.data;
+          renderFoodList();
+        }
+      } catch (err) { console.error('Error fetching foods:', err); }
+    }
+
+    function renderFoodList() {
+      const container = document.getElementById('foodListContainer');
+      const filter = document.getElementById('selectFilterStatus').value;
+
+      const filtered = foods.filter(f => {
+        if (activeKitchenId && f.kitchenId !== activeKitchenId) return false;
+        if (filter === 'ALL') return true;
+        return f.status === filter;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="py-12 text-center text-slate-400 border-2 border-dashed border-slate-100 rounded-xl">
+            <i data-lucide="utensils" class="mx-auto h-10 w-10 mb-2 opacity-30"></i>
+            <p class="text-sm font-medium">Belum ada stok masakan pada filter ini.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      const now = Date.now();
+
+      container.innerHTML = filtered.map(f => {
+        const safeUntilTime = f.safeUntil ? new Date(f.safeUntil).getTime() : 0;
+        const diff = safeUntilTime - now;
+        const isExpired = diff <= 0;
+        let remainingText = '-';
+        if (safeUntilTime) {
+          if (isExpired) {
+            remainingText = 'EXPIRED';
+          } else {
+            const h = Math.floor(diff / (1000 * 60 * 60));
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            remainingText = `${h}j ${m}m`;
+          }
+        }
+
+        const effectiveStatus = isExpired && f.status === 'AVAILABLE' ? 'EXPIRED' : f.status;
+
+        let badgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        if (effectiveStatus === 'MATCHED') badgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+        if (effectiveStatus === 'DISTRIBUTED') badgeClass = 'bg-indigo-50 text-indigo-700 border-indigo-200';
+        if (effectiveStatus === 'EXPIRED') badgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
+
+        const safeUntilFormatted = f.safeUntil ? new Date(f.safeUntil).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-';
+
+        return `
+          <div class="group flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-slate-200/60 bg-slate-50/50 hover:bg-white hover:border-blue-200 transition-all shadow-sm">
+            <div class="space-y-1">
+              <div class="flex items-center space-x-2">
+                <h4 class="font-bold text-slate-900 text-sm">${f.menuName}</h4>
+                <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">${f.portionCount} Porsi</span>
+              </div>
+              <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                <span class="flex items-center space-x-1">
+                  <i data-lucide="clock" class="h-3.5 w-3.5 text-slate-400"></i>
+                  <span>Safe until: ${safeUntilFormatted}</span>
+                </span>
+                <span class="font-semibold flex items-center space-x-1 ${isExpired ? 'text-rose-600' : 'text-emerald-600'}">
+                  <i data-lucide="alert-triangle" class="h-3.5 w-3.5"></i>
+                  <span>Sisa: ${remainingText}</span>
+                </span>
+              </div>
+            </div>
+            <div class="mt-3 sm:mt-0 flex items-center space-x-2">
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold border ${badgeClass}">${effectiveStatus}</span>
+              ${f.status === 'MATCHED' ? `
+                <button onclick="updateFoodStatus('${f.id}', 'DISTRIBUTED')" class="flex items-center space-x-1 rounded-lg bg-indigo-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-indigo-700">
+                  <i data-lucide="package-check" class="h-3.5 w-3.5"></i>
+                  <span>Distribusi</span>
+                </button>
+              ` : ''}
+              <button onclick="deleteFoodItem('${f.id}')" class="p-1.5 rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600">
+                <i data-lucide="trash-2" class="h-4 w-4"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    async function handleCreateFood(e) {
+      e.preventDefault();
+      if (!activeKitchenId) return alert('Silakan pilih Dapur!');
+
+      const menuName = document.getElementById('inputMenuName').value;
+      const portionCount = parseInt(document.getElementById('inputPortionCount').value);
+      const cookedAt = document.getElementById('inputCookedAt').value;
+
+      try {
+        const res = await fetch('/api/foods', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            kitchenId: activeKitchenId,
+            menuName,
+            portionCount,
+            cookedAt: cookedAt ? new Date(cookedAt).toISOString() : undefined,
+          })
+        });
+        const json = await res.json();
+        if (json.success) {
+          document.getElementById('inputMenuName').value = '';
+          document.getElementById('ocrNotice').classList.add('hidden');
+          await fetchFoods();
+        } else {
+          alert(json.message || 'Gagal menyimpan stok masakan.');
+        }
+      } catch (err) { alert('Error: ' + err.message); }
+    }
+
+    async function updateFoodStatus(foodId, status) {
+      try {
+        const res = await fetch(`/api/foods/${foodId}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status })
+        });
+        const json = await res.json();
+        if (json.success) {
+          await fetchFoods();
+        }
+      } catch (err) { alert('Error updating status'); }
+    }
+
+    async function deleteFoodItem(foodId) {
+      if (!confirm('Hapus stok makanan ini?')) return;
+      try {
+        await fetch(`/api/foods/${foodId}`, { method: 'DELETE' });
+        await fetchFoods();
+      } catch (err) { alert('Error deleting food item'); }
+    }
+
+    // RECIPIENTS API & UI
+    async function fetchRecipients() {
+      try {
+        const res = await fetch('/api/recipients');
+        const json = await res.json();
+        if (json.success) {
+          recipients = json.data;
+          const select = document.getElementById('selectRecipient');
+          select.innerHTML = recipients.map(r => `<option value="${r.id}">${r.name} (${r.type})</option>`).join('');
+          if (recipients.length > 0) {
+            activeRecipientId = recipients[0].id;
+          }
+          onRecipientSelectChange();
+        }
+      } catch (err) { console.error('Error fetching recipients:', err); }
+    }
+
+    function onRecipientSelectChange() {
+      activeRecipientId = document.getElementById('selectRecipient').value;
+      const rec = recipients.find(r => r.id === activeRecipientId);
+      document.getElementById('badgeActiveRecipientName').innerText = rec ? rec.name : '-';
+      currentMatchResult = null;
+      document.getElementById('matchNoticeContainer').innerHTML = '';
+      initOrUpdateMap();
+    }
+
+    function updateRadiusLabel(val) {
+      document.getElementById('txtRadiusValue').innerText = `${parseFloat(val).toFixed(1)} KM`;
+      initOrUpdateMap();
+    }
+
+    async function handleFindMatches() {
+      if (!activeRecipientId) return alert('Silakan pilih Penerima!');
+      const radiusKm = parseFloat(document.getElementById('inputRadiusSlider').value);
+
+      try {
+        const res = await fetch('/api/matching/find', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ recipientId: activeRecipientId, maxRadiusKm: radiusKm })
+        });
+        const json = await res.json();
+        if (json.success) {
+          currentMatchResult = json.data;
+          renderMatchResultCard();
+          initOrUpdateMap();
+        } else {
+          alert(json.message || 'Gagal mencari makanan.');
+        }
+      } catch (err) { alert('Error: ' + err.message); }
+    }
+
+    function renderMatchResultCard() {
+      const container = document.getElementById('matchNoticeContainer');
+      if (!currentMatchResult) return container.innerHTML = '';
+
+      if (currentMatchResult.matchFound) {
+        container.innerHTML = `
+          <div class="rounded-2xl border border-blue-200 bg-gradient-to-b from-blue-50/50 to-white p-6 shadow-md relative overflow-hidden animate-in fade-in duration-300">
+            <div class="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">Matching Found</div>
+            <div class="space-y-4">
+              <div class="flex items-center space-x-3">
+                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-600/30">
+                  <i data-lucide="truck" class="h-6 w-6"></i>
+                </div>
+                <div>
+                  <span class="text-xs font-semibold text-blue-600">Notifikasi Makanan Datang!</span>
+                  <h4 class="font-bold text-slate-900 text-base">${currentMatchResult.menuName || 'Nasi Masakan Bergizi'}</h4>
+                </div>
+              </div>
+              <div class="space-y-2 border-t border-b border-slate-100 py-3 text-xs text-slate-600">
+                <div class="flex justify-between"><span class="text-slate-400">Pengirim (Dapur):</span><span class="font-bold text-slate-800">${currentMatchResult.kitchenName}</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Jumlah Porsi:</span><span class="font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">${currentMatchResult.portionCount || 100} Porsi</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Jarak Ke Lokasi:</span><span class="font-bold text-slate-900">${currentMatchResult.distanceKm.toFixed(2)} KM</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Estimasi Waktu Kirim:</span><span class="font-bold text-slate-900">~${currentMatchResult.estimatedTravelTimeMinutes} Menit</span></div>
+              </div>
+              <button onclick="claimMatchedFood('${currentMatchResult.foodId}')" class="w-full flex items-center justify-center space-x-2 rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-700">
+                <i data-lucide="check-circle-2" class="h-4 w-4"></i>
+                <span>Klaim & Terima Makanan Ini</span>
+              </button>
+            </div>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="rounded-2xl border border-rose-200 bg-rose-50/50 p-5 text-center text-xs text-rose-700">
+            <i data-lucide="alert-circle" class="mx-auto h-8 w-8 text-amber-500 mb-2 opacity-80"></i>
+            <p class="font-bold text-slate-800 text-sm mb-1">Tidak Ada Makanan Dalam Radius Ini</p>
+            <p>Tidak ditemukan makanan AVAILABLE di radius ini. Coba perbesar jarak radius slider.</p>
+          </div>
+        `;
+      }
+      lucide.createIcons();
+    }
+
+    async function claimMatchedFood(foodId) {
+      await updateFoodStatus(foodId, 'MATCHED');
+      alert('Makanan berhasil diklaim! Status updated to MATCHED.');
+      fetchFoods();
+    }
+
+    // LEAFLET MAP VISUALIZATION
+    function initOrUpdateMap() {
+      const rec = recipients.find(r => r.id === activeRecipientId);
+      if (!rec) return;
+
+      const radiusKm = parseFloat(document.getElementById('inputRadiusSlider').value);
+
+      if (mapInstance) {
+        mapInstance.remove();
+        mapInstance = null;
+      }
+
+      const hasKitchen = currentMatchResult && currentMatchResult.matchFound && currentMatchResult.kitchenLatitude;
+
+      const centerLat = hasKitchen ? (rec.latitude + currentMatchResult.kitchenLatitude) / 2 : rec.latitude;
+      const centerLng = hasKitchen ? (rec.longitude + currentMatchResult.kitchenLongitude) / 2 : rec.longitude;
+
+      mapInstance = L.map('map').setView([centerLat, centerLng], hasKitchen ? 13 : 14);
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        attribution: '&copy; CARTO'
+      }).addTo(mapInstance);
+
+      // Recipient Pin Icon
+      const recIcon = L.divIcon({
+        className: 'custom-icon',
+        html: `<div style="background:#0284c7;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;border:3px solid white;box-shadow:0 4px 10px rgba(0,0,0,0.3);font-size:16px;">🏠</div>`,
+        iconSize: [32, 32], iconAnchor: [16, 16]
+      });
+
+      L.marker([rec.latitude, rec.longitude], { icon: recIcon }).addTo(mapInstance).bindPopup(`<b>${rec.name}</b><br/>Penerima Makanan`).openPopup();
+
+      // Radius Circle
+      L.circle([rec.latitude, rec.longitude], {
+        color: '#2563eb', fillColor: '#3b82f6', fillOpacity: 0.1, radius: radiusKm * 1000, dashArray: '5, 10'
+      }).addTo(mapInstance);
+
+      if (hasKitchen) {
+        const kIcon = L.divIcon({
+          className: 'custom-icon',
+          html: `<div style="background:#2563eb;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;border:3px solid white;box-shadow:0 4px 10px rgba(0,0,0,0.3);font-size:16px;">🍳</div>`,
+          iconSize: [32, 32], iconAnchor: [16, 16]
+        });
+
+        L.marker([currentMatchResult.kitchenLatitude, currentMatchResult.kitchenLongitude], { icon: kIcon }).addTo(mapInstance).bindPopup(`<b>${currentMatchResult.kitchenName}</b><br/>Dapur MBG`);
+
+        const polyline = L.polyline([
+          [currentMatchResult.kitchenLatitude, currentMatchResult.kitchenLongitude],
+          [rec.latitude, rec.longitude]
+        ], { color: '#2563eb', weight: 4, opacity: 0.8, dashArray: '8, 8' }).addTo(mapInstance);
+
+        polyline.bindTooltip(`📏 Jarak: ${currentMatchResult.distanceKm.toFixed(2)} KM (~${currentMatchResult.estimatedTravelTimeMinutes}m)`, {
+          permanent: true, direction: 'center', className: 'distance-tooltip'
+        });
+
+        mapInstance.fitBounds(polyline.getBounds(), { padding: [50, 50] });
+      }
+    }
+
+    // MODAL CONTROL FUNCTIONS
+    function openOcrModal() {
+      document.getElementById('modalOcr').classList.remove('hidden');
+      startCameraStream();
+    }
+
+    function closeOcrModal() {
+      document.getElementById('modalOcr').classList.add('hidden');
+      stopCameraStream();
+    }
+
+    async function startCameraStream() {
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        const video = document.getElementById('videoOcr');
+        video.srcObject = cameraStream;
+        video.classList.remove('hidden');
+        document.getElementById('cameraPlaceholder').classList.add('hidden');
+      } catch (err) { console.warn('WebRTC camera not available:', err); }
+    }
+
+    function stopCameraStream() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+      }
+    }
+
+    async function captureCameraSnapshot() {
+      const video = document.getElementById('videoOcr');
+      const canvas = document.getElementById('canvasOcr');
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob(blob => {
+        if (blob) {
+          const file = new File([blob], 'capture.jpg', { type: 'image/jpeg' });
+          uploadOcrFile(file);
+        }
+      }, 'image/jpeg');
+    }
+
+    function handleOcrFileSelect(e) {
+      if (e.target.files && e.target.files[0]) {
+        uploadOcrFile(e.target.files[0]);
+      }
+    }
+
+    async function uploadOcrFile(file) {
+      const formData = new FormData();
+      formData.append('image', file);
+      try {
+        const res = await fetch('/api/ocr', { method: 'POST', body: formData });
+        const json = await res.json();
+        if (json.success) {
+          const formatted = new Date(json.data.parsedDate).toISOString().slice(0, 16);
+          document.getElementById('inputCookedAt').value = formatted;
+          document.getElementById('ocrNoticeText').innerText = `OCR Hasil Deteksi: "${json.data.extractedText}"`;
+          document.getElementById('ocrNotice').classList.remove('hidden');
+          closeOcrModal();
+        } else {
+          alert('Gagal OCR: ' + json.message);
+        }
+      } catch (err) { alert('Error OCR upload: ' + err.message); }
+    }
+
+    function openKitchenModal() { document.getElementById('modalKitchen').classList.remove('hidden'); }
+    function closeKitchenModal() { document.getElementById('modalKitchen').classList.add('hidden'); }
+    async function handleRegisterKitchen(e) {
+      e.preventDefault();
+      try {
+        const res = await fetch('/api/kitchens', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: document.getElementById('newKitchenName').value,
+            address: document.getElementById('newKitchenAddress').value,
+            latitude: parseFloat(document.getElementById('newKitchenLat').value),
+            longitude: parseFloat(document.getElementById('newKitchenLng').value)
+          })
+        });
+        const json = await res.json();
+        if (json.success) {
+          closeKitchenModal();
+          await fetchKitchens();
+        }
+      } catch (err) { alert('Error creating kitchen'); }
+    }
+
+    function openRecipientModal() { document.getElementById('modalRecipient').classList.remove('hidden'); }
+    function closeRecipientModal() { document.getElementById('modalRecipient').classList.add('hidden'); }
+    async function handleRegisterRecipient(e) {
+      e.preventDefault();
+      try {
+        const res = await fetch('/api/recipients', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: document.getElementById('newRecipientName').value,
+            type: document.getElementById('newRecipientType').value,
+            capacity: parseInt(document.getElementById('newRecipientCapacity').value),
+            address: document.getElementById('newRecipientAddress').value,
+            latitude: parseFloat(document.getElementById('newRecipientLat').value),
+            longitude: parseFloat(document.getElementById('newRecipientLng').value)
+          })
+        });
+        const json = await res.json();
+        if (json.success) {
+          closeRecipientModal();
+          await fetchRecipients();
+        }
+      } catch (err) { alert('Error creating recipient'); }
+    }
+  </script>
+
+</body>
+</html>

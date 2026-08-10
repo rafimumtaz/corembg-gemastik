@@ -22,6 +22,8 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api', routes);
 
+app.use(express.static('public'));
+
 app.use((req, res) => {
   return sendError(res, 404, 'NOT_FOUND', 'Endpoint not found');
 });
