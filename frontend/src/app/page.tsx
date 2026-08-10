@@ -399,6 +399,32 @@ export default function Home() {
                   </form>
 
                 </div>
+
+                {/* Map Preview Card for Dapur MBG */}
+                <div className="rounded-3xl bg-slate-900/70 border border-slate-800 p-6 shadow-xl backdrop-blur-md space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-bold text-slate-100 text-base flex items-center space-x-2">
+                        <MapPin className="h-5 w-5 text-blue-400" />
+                        <span>Peta Lokasi Dapur MBG</span>
+                      </h3>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        Lokasi Dapur MBG pengirim pada peta interaktif
+                      </p>
+                    </div>
+                    <span className="text-xs font-semibold text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
+                      {activeKitchen ? activeKitchen.name : 'Dapur MBG'}
+                    </span>
+                  </div>
+
+                  <MapComponent
+                    kitchenLat={activeKitchen?.latitude}
+                    kitchenLng={activeKitchen?.longitude}
+                    kitchenName={activeKitchen?.name}
+                    allKitchens={kitchens}
+                  />
+                </div>
+
               </div>
 
               {/* Right Column: Inventory List */}
@@ -714,10 +740,11 @@ export default function Home() {
                       recipientLng={activeRecipient.longitude}
                       recipientName={activeRecipient.name}
                       maxRadiusKm={maxRadiusKm}
-                      kitchenLat={matchResult?.matchFound ? matchResult.kitchenLatitude : undefined}
-                      kitchenLng={matchResult?.matchFound ? matchResult.kitchenLongitude : undefined}
-                      kitchenName={matchResult?.matchFound ? matchResult.kitchenName : undefined}
-                      distanceKm={matchResult?.matchFound ? matchResult.distanceKm : undefined}
+                      kitchenLat={matchResult?.matches?.[0] ? matchResult.matches[0].kitchenLat : (matchResult?.kitchenLatitude || activeKitchen?.latitude)}
+                      kitchenLng={matchResult?.matches?.[0] ? matchResult.matches[0].kitchenLng : (matchResult?.kitchenLongitude || activeKitchen?.longitude)}
+                      kitchenName={matchResult?.matches?.[0] ? matchResult.matches[0].kitchenName : (matchResult?.kitchenName || activeKitchen?.name)}
+                      distanceKm={matchResult?.matches?.[0] ? matchResult.matches[0].distanceKm : matchResult?.distanceKm}
+                      allKitchens={kitchens}
                     />
                   ) : (
                     <div className="w-full h-[380px] rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center text-slate-500 text-xs">
