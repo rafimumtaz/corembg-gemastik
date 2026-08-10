@@ -22,6 +22,7 @@ export async function POST(req: Request) {
     const recipient = await prisma.recipient.create({
       data: {
         name: body.name,
+        type: body.type || 'PENERIMA',
         address: body.address,
         capacity: parseInt(body.capacity, 10),
         latitude: parseFloat(body.latitude),
