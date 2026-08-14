@@ -10,134 +10,143 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  console.log('Seeding database...');
+  console.log('Seeding database with updated schema...');
+
+  // Clean existing data
+  await prisma.foodStock.deleteMany({});
+  await prisma.kitchen.deleteMany({});
+  await prisma.recipient.deleteMany({});
 
   // Create Kitchens
   const kitchen1 = await prisma.kitchen.create({
     data: {
-      name: 'Dapur MBG Sidoarjo',
-      address: 'Jl. Pahlawan No. 1, Sidoarjo',
-      latitude: -7.45,
-      longitude: 112.71,
+      name: 'Dapur MBG Surabaya Pusat',
+      address: 'Genteng, Surabaya',
+      latitude: -7.2575,
+      longitude: 112.7483,
+      picName: 'Pak Budi Prasetyo',
+      district: 'Genteng',
+      phone: '0812-3456-7890',
+      dailyCapacity: 800,
     },
   });
 
   const kitchen2 = await prisma.kitchen.create({
     data: {
-      name: 'Dapur MBG Surabaya',
-      address: 'Jl. Basuki Rahmat No. 2, Surabaya',
-      latitude: -7.25,
-      longitude: 112.75,
+      name: 'Dapur MBG Rungkut Industri',
+      address: 'Rungkut Industri No. 5, Surabaya',
+      latitude: -7.3292,
+      longitude: 112.7665,
+      picName: 'Ustadz Ahmad Fauzi',
+      district: 'Rungkut',
+      phone: '0857-1122-3344',
+      dailyCapacity: 1000,
     },
   });
 
   // Create Recipients
-  const pantiA = await prisma.recipient.create({
+  const recipient1 = await prisma.recipient.create({
     data: {
-      name: 'Panti Asuhan A',
+      name: 'Panti Werda & Balita harapan',
+      type: 'PENERIMA',
+      address: 'Jl. Raya Ngagel No. 102, Wonokromo',
+      latitude: -7.2910,
+      longitude: 112.7530,
+      capacity: 150,
+      picName: 'Suster Maria',
+      phone: '0813-9988-7766',
+      targetPortions: 150,
+    },
+  });
+
+  const recipient2 = await prisma.recipient.create({
+    data: {
+      name: 'Panti Asuhan Kasih Ibu',
       type: 'PANTI',
-      address: 'Jl. Merdeka No. 10',
-      latitude: -7.44,
-      longitude: 112.72,
+      address: 'Jl. Merdeka No. 10, Surabaya',
+      latitude: -7.2650,
+      longitude: 112.7400,
       capacity: 100,
-    },
-  });
-
-  const pantiB = await prisma.recipient.create({
-    data: {
-      name: 'Panti Asuhan B',
-      type: 'PANTI',
-      address: 'Jl. Kemerdekaan No. 5',
-      latitude: -7.46,
-      longitude: 112.70,
-      capacity: 50,
-    },
-  });
-
-  const pantiC = await prisma.recipient.create({
-    data: {
-      name: 'Penerima C',
-      type: 'PENERIMA',
-      address: 'Jl. C No. 5',
-      latitude: -7.26,
-      longitude: 112.76,
-      capacity: 20,
-    },
-  });
-
-  const pantiD = await prisma.recipient.create({
-    data: {
-      name: 'Penerima D',
-      type: 'PENERIMA',
-      address: 'Jl. D No. 5',
-      latitude: -7.24,
-      longitude: 112.74,
-      capacity: 30,
-    },
-  });
-
-  const pantiE = await prisma.recipient.create({
-    data: {
-      name: 'Penerima E',
-      type: 'PENERIMA',
-      address: 'Jl. E No. 5',
-      latitude: -7.27,
-      longitude: 112.73,
-      capacity: 10,
+      picName: 'Ibu Ratna',
+      phone: '0812-9999-8888',
+      targetPortions: 200,
     },
   });
 
   // Create Food Stocks
   const now = new Date();
   const safeUntil = new Date(now.getTime() + 3 * 60 * 60 * 1000); // +3 hours
-  const expiredSafeUntil = new Date(now.getTime() - 1 * 60 * 60 * 1000); // -1 hour (expired)
 
-  await prisma.foodStock.createMany({
-    data: [
-      {
-        kitchenId: kitchen1.id,
-        menuName: 'Nasi Ayam Geprek',
-        portionCount: 150,
-        cookedAt: now,
-        safeUntil: safeUntil,
-        status: 'AVAILABLE',
-      },
-      {
-        kitchenId: kitchen1.id,
-        menuName: 'Nasi Pecel',
-        portionCount: 100,
-        cookedAt: now,
-        safeUntil: safeUntil,
-        status: 'AVAILABLE',
-      },
-      {
-        kitchenId: kitchen2.id,
-        menuName: 'Nasi Rawon',
-        portionCount: 200,
-        cookedAt: now,
-        safeUntil: safeUntil,
-        status: 'AVAILABLE',
-      },
-      {
-        kitchenId: kitchen2.id,
-        menuName: 'Nasi Goreng',
-        portionCount: 50,
-        cookedAt: new Date(now.getTime() - 4 * 60 * 60 * 1000), // Cooked 4 hrs ago
-        safeUntil: expiredSafeUntil, // Expired
-        status: 'AVAILABLE', // Should be considered EXPIRED dynamically
-      },
-      {
-        kitchenId: kitchen1.id,
-        menuName: 'Nasi Campur',
-        portionCount: 80,
-        cookedAt: now,
-        safeUntil: safeUntil,
-        status: 'MATCHED',
-      },
-    ],
+  // 1. Available Food Stock at Rungkut
+  await prisma.foodStock.create({
+    data: {
+      kitchenId: kitchen2.id,
+      menuName: 'Nasi Soto Ayam Kuning + Perkedel & Telur Rebus',
+      portionCount: 10,
+      tags: ['Protein Komplit', 'Kuah Rempah Warm'],
+      cookedAt: now,
+      safeUntil: safeUntil,
+      status: 'AVAILABLE',
+    },
   });
 
-  console.log('Seeding completed.');
+  // 2. Available Food Stock at Surabaya Pusat
+  await prisma.foodStock.create({
+    data: {
+      kitchenId: kitchen1.id,
+      menuName: 'Nasi Ayam Geprek + Sayur Bayam & Buah',
+      portionCount: 100,
+      tags: ['Tinggi Protein', 'Sayur Segar', 'Halal Certified'],
+      cookedAt: now,
+      safeUntil: safeUntil,
+      status: 'AVAILABLE',
+    },
+  });
+
+  // 3, 4, 5. Claimed Foods History for Recipient 1 (Panti Werda & Balita harapan)
+  await prisma.foodStock.create({
+    data: {
+      kitchenId: kitchen2.id,
+      menuName: 'Nasi Soto Ayam Kuning + Perkedel & Telur Rebus',
+      portionCount: 10,
+      tags: ['Protein Komplit'],
+      cookedAt: new Date(now.getTime() - 40 * 60 * 1000),
+      safeUntil: safeUntil,
+      status: 'MATCHED',
+      recipientId: recipient1.id,
+      claimedAt: new Date(now.getTime() - 20 * 60 * 1000),
+    },
+  });
+
+  await prisma.foodStock.create({
+    data: {
+      kitchenId: kitchen2.id,
+      menuName: 'Nasi Soto Ayam Kuning + Perkedel & Telur Rebus',
+      portionCount: 50,
+      tags: ['Protein Komplit'],
+      cookedAt: new Date(now.getTime() - 60 * 60 * 1000),
+      safeUntil: safeUntil,
+      status: 'MATCHED',
+      recipientId: recipient1.id,
+      claimedAt: new Date(now.getTime() - 35 * 60 * 1000),
+    },
+  });
+
+  await prisma.foodStock.create({
+    data: {
+      kitchenId: kitchen2.id,
+      menuName: 'Nasi Soto Ayam Kuning + Perkedel & Telur Rebus',
+      portionCount: 50,
+      tags: ['Protein Komplit'],
+      cookedAt: new Date(now.getTime() - 90 * 60 * 1000),
+      safeUntil: safeUntil,
+      status: 'MATCHED',
+      recipientId: recipient1.id,
+      claimedAt: new Date(now.getTime() - 50 * 60 * 1000),
+    },
+  });
+
+  console.log('Seeding completed successfully!');
 }
 
 main()

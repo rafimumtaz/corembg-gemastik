@@ -28,7 +28,7 @@ export const findMatches = async (req: Request, res: Response, next: NextFunctio
     const recipients = await prisma.recipient.findMany();
 
     const matches = recipients
-      .map(recipient => {
+      .map((recipient: any) => {
         const distanceKm = haversine(
           food.kitchen.latitude,
           food.kitchen.longitude,
@@ -42,8 +42,8 @@ export const findMatches = async (req: Request, res: Response, next: NextFunctio
           capacity: recipient.capacity,
         };
       })
-      .filter(match => match.distanceKm <= radiusKm)
-      .sort((a, b) => a.distanceKm - b.distanceKm);
+      .filter((match: any) => match.distanceKm <= radiusKm)
+      .sort((a: any, b: any) => a.distanceKm - b.distanceKm);
 
     return sendSuccess(res, {
       food: {

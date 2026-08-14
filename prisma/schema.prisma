@@ -22,13 +22,17 @@ enum RecipientType {
 }
 
 model Kitchen {
-  id        String      @id @default(uuid())
-  name      String
-  address   String
-  latitude  Float
-  longitude Float
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id            String      @id @default(uuid())
+  name          String
+  address       String
+  latitude      Float
+  longitude     Float
+  picName       String?
+  district      String?
+  phone         String?
+  dailyCapacity Int         @default(800)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
   
   foodStocks FoodStock[]
 }
@@ -41,20 +45,29 @@ model FoodStock {
   cookedAt     DateTime?
   safeUntil    DateTime?
   status       FoodStatus @default(AVAILABLE)
+  tags         String[]   @default([])
+  recipientId  String?
+  claimedAt    DateTime?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
-  kitchen      Kitchen    @relation(fields: [kitchenId], references: [id])
+  kitchen   Kitchen    @relation(fields: [kitchenId], references: [id])
+  recipient Recipient? @relation(fields: [recipientId], references: [id])
 }
 
 model Recipient {
-  id        String        @id @default(uuid())
-  name      String
-  type      RecipientType
-  address   String
-  latitude  Float
-  longitude Float
-  capacity  Int
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  id             String        @id @default(uuid())
+  name           String
+  type           RecipientType
+  address        String
+  latitude       Float
+  longitude      Float
+  capacity       Int
+  picName        String?
+  phone          String?
+  targetPortions Int           @default(150)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  claimedFoods FoodStock[]
 }

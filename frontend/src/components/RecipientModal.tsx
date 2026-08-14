@@ -11,11 +11,14 @@ interface RecipientModalProps {
 
 export default function RecipientModal({ isOpen, onClose, onSuccess }: RecipientModalProps) {
   const [name, setName] = useState('');
-  const [type, setType] = useState('PANTI');
-  const [capacity, setCapacity] = useState('50');
+  const [type, setType] = useState('PENERIMA');
+  const [picName, setPicName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [targetPortions, setTargetPortions] = useState('150');
+  const [capacity, setCapacity] = useState('150');
   const [address, setAddress] = useState('');
-  const [latitude, setLatitude] = useState('-7.44');
-  const [longitude, setLongitude] = useState('112.72');
+  const [latitude, setLatitude] = useState('-7.2910');
+  const [longitude, setLongitude] = useState('112.7530');
   const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
@@ -31,7 +34,10 @@ export default function RecipientModal({ isOpen, onClose, onSuccess }: Recipient
         body: JSON.stringify({
           name,
           type,
-          capacity: parseInt(capacity, 10),
+          picName: picName || 'Pengurus',
+          phone: phone || '-',
+          targetPortions: parseInt(targetPortions, 10) || 150,
+          capacity: parseInt(capacity, 10) || 150,
           address,
           latitude: parseFloat(latitude),
           longitude: parseFloat(longitude),
@@ -42,6 +48,8 @@ export default function RecipientModal({ isOpen, onClose, onSuccess }: Recipient
       if (json.success) {
         setName('');
         setAddress('');
+        setPicName('');
+        setPhone('');
         onSuccess();
         onClose();
       } else {
@@ -55,96 +63,127 @@ export default function RecipientModal({ isOpen, onClose, onSuccess }: Recipient
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-full max-w-md overflow-hidden rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900/90 px-6 py-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="w-full max-w-lg overflow-hidden rounded-3xl bg-white border border-slate-200 shadow-2xl">
+        <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-6 py-4">
           <div className="flex items-center space-x-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-600 text-white shadow-lg shadow-cyan-600/30">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-500/20">
               <HeartHandshake className="h-5 w-5" />
             </div>
-            <h3 className="font-bold text-slate-100 text-base">Registrasi Penerima Baru</h3>
+            <div>
+              <h3 className="font-bold text-slate-900 text-base">Registrasi Penerima Baru</h3>
+              <p className="text-xs text-slate-500">Panti Asuhan, Posyandu, atau Sekolah penerima</p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="rounded-xl p-2 text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors"
+            className="rounded-xl p-2 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">Nama Panti / Posyandu</label>
+            <label className="block font-semibold text-slate-700 mb-1">Nama Panti / Posyandu</label>
             <input
               type="text"
               required
-              placeholder="Panti Asuhan Kasih Ibu"
+              placeholder="Misal: Panti Werda & Balita harapan"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-2xl bg-slate-950 border border-slate-800 px-4 py-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+              className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Tipe</label>
+              <label className="block font-semibold text-slate-700 mb-1">Tipe</label>
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value)}
-                className="w-full rounded-2xl bg-slate-950 border border-slate-800 px-4 py-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none"
+                className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none"
               >
+                <option value="PENERIMA">PENERIMA</option>
                 <option value="PANTI">PANTI</option>
                 <option value="POSYANDU">POSYANDU</option>
-                <option value="SEKOLAH">SEKOLAH</option>
-                <option value="PENERIMA">PENERIMA LAIN</option>
               </select>
             </div>
+
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Kapasitas (Orang)</label>
+              <label className="block font-semibold text-slate-700 mb-1">Nama PIC</label>
+              <input
+                type="text"
+                required
+                placeholder="Suster Maria"
+                value={picName}
+                onChange={(e) => setPicName(e.target.value)}
+                className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">No. Kontak HP</label>
+              <input
+                type="text"
+                placeholder="0857-1122-3344"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">Target Makanan (Box/Hari)</label>
               <input
                 type="number"
                 required
                 min="1"
-                value={capacity}
-                onChange={(e) => setCapacity(e.target.value)}
-                className="w-full rounded-2xl bg-slate-950 border border-slate-800 px-4 py-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+                value={targetPortions}
+                onChange={(e) => {
+                  setTargetPortions(e.target.value);
+                  setCapacity(e.target.value);
+                }}
+                className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">Alamat Lengkap</label>
+            <label className="block font-semibold text-slate-700 mb-1">Alamat Lengkap</label>
             <textarea
               required
               rows={2}
-              placeholder="Jl. Merdeka No. 10, Sidoarjo"
+              placeholder="Jl. Raya Ngagel No. 102, Wonokromo"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              className="w-full rounded-2xl bg-slate-950 border border-slate-800 px-4 py-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+              className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Latitude</label>
+              <label className="block font-semibold text-slate-700 mb-1">Latitude</label>
               <input
                 type="number"
                 step="any"
                 required
                 value={latitude}
                 onChange={(e) => setLatitude(e.target.value)}
-                className="w-full rounded-2xl bg-slate-950 border border-slate-800 px-4 py-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+                className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Longitude</label>
+              <label className="block font-semibold text-slate-700 mb-1">Longitude</label>
               <input
                 type="number"
                 step="any"
                 required
                 value={longitude}
                 onChange={(e) => setLongitude(e.target.value)}
-                className="w-full rounded-2xl bg-slate-950 border border-slate-800 px-4 py-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+                className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none"
               />
             </div>
           </div>
@@ -152,7 +191,7 @@ export default function RecipientModal({ isOpen, onClose, onSuccess }: Recipient
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center space-x-2 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 py-3.5 text-sm font-semibold text-white hover:from-cyan-500 hover:to-blue-500 transition-all shadow-lg shadow-cyan-600/20 disabled:opacity-50"
+            className="w-full flex items-center justify-center space-x-2 rounded-2xl bg-blue-600 py-3 text-sm font-bold text-white hover:bg-blue-700 transition-all shadow-md shadow-blue-600/20 disabled:opacity-50 mt-2"
           >
             <Plus className="h-4 w-4" />
             <span>Simpan Penerima</span>

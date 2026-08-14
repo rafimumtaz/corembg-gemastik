@@ -12,8 +12,12 @@ interface KitchenModalProps {
 export default function KitchenModal({ isOpen, onClose, onSuccess }: KitchenModalProps) {
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
-  const [latitude, setLatitude] = useState('-7.45');
-  const [longitude, setLongitude] = useState('112.71');
+  const [district, setDistrict] = useState('');
+  const [picName, setPicName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [dailyCapacity, setDailyCapacity] = useState('800');
+  const [latitude, setLatitude] = useState('-7.2575');
+  const [longitude, setLongitude] = useState('112.7483');
   const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
@@ -29,6 +33,10 @@ export default function KitchenModal({ isOpen, onClose, onSuccess }: KitchenModa
         body: JSON.stringify({
           name,
           address,
+          district: district || 'Surabaya',
+          picName: picName || 'Penanggung Jawab',
+          phone: phone || '-',
+          dailyCapacity: parseInt(dailyCapacity, 10) || 800,
           latitude: parseFloat(latitude),
           longitude: parseFloat(longitude),
         }),
@@ -38,6 +46,9 @@ export default function KitchenModal({ isOpen, onClose, onSuccess }: KitchenModa
       if (json.success) {
         setName('');
         setAddress('');
+        setDistrict('');
+        setPicName('');
+        setPhone('');
         onSuccess();
         onClose();
       } else {
@@ -51,69 +62,123 @@ export default function KitchenModal({ isOpen, onClose, onSuccess }: KitchenModa
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-full max-w-md overflow-hidden rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900/90 px-6 py-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="w-full max-w-lg overflow-hidden rounded-3xl bg-white border border-slate-200 shadow-2xl">
+        <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-6 py-4">
           <div className="flex items-center space-x-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-600/30">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-500/20">
               <Building2 className="h-5 w-5" />
             </div>
-            <h3 className="font-bold text-slate-100 text-base">Registrasi Dapur MBG Baru</h3>
+            <div>
+              <h3 className="font-bold text-slate-900 text-base">Tambah Dapur MBG Baru</h3>
+              <p className="text-xs text-slate-500">Registrasi lokasi dapur pengirim makanan</p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="rounded-xl p-2 text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors"
+            className="rounded-xl p-2 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">Nama Dapur</label>
+            <label className="block font-semibold text-slate-700 mb-1">Nama Dapur</label>
             <input
               type="text"
               required
-              placeholder="Dapur MBG Sidoarjo Central"
+              placeholder="Misal: Dapur MBG Surabaya Pusat"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-2xl bg-slate-950 border border-slate-800 px-4 py-3 text-sm text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">Alamat Lengkap</label>
-            <textarea
-              required
-              rows={2}
-              placeholder="Jl. Pahlawan No. 1, Sidoarjo"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="w-full rounded-2xl bg-slate-950 border border-slate-800 px-4 py-3 text-sm text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Latitude</label>
+              <label className="block font-semibold text-slate-700 mb-1">Nama PIC / Pengelola</label>
+              <input
+                type="text"
+                required
+                placeholder="Pak Budi Prasetyo"
+                value={picName}
+                onChange={(e) => setPicName(e.target.value)}
+                className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">Kecamatan / Area</label>
+              <input
+                type="text"
+                required
+                placeholder="Genteng"
+                value={district}
+                onChange={(e) => setDistrict(e.target.value)}
+                className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">No. Kontak HP</label>
+              <input
+                type="text"
+                placeholder="0812-3456-7890"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">Kapasitas Produksi (Box/Hari)</label>
+              <input
+                type="number"
+                required
+                min="1"
+                value={dailyCapacity}
+                onChange={(e) => setDailyCapacity(e.target.value)}
+                className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-semibold text-slate-700 mb-1">Alamat Lengkap</label>
+            <textarea
+              required
+              rows={2}
+              placeholder="Genteng, Surabaya"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">Latitude</label>
               <input
                 type="number"
                 step="any"
                 required
                 value={latitude}
                 onChange={(e) => setLatitude(e.target.value)}
-                className="w-full rounded-2xl bg-slate-950 border border-slate-800 px-4 py-3 text-sm text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Longitude</label>
+              <label className="block font-semibold text-slate-700 mb-1">Longitude</label>
               <input
                 type="number"
                 step="any"
                 required
                 value={longitude}
                 onChange={(e) => setLongitude(e.target.value)}
-                className="w-full rounded-2xl bg-slate-950 border border-slate-800 px-4 py-3 text-sm text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none"
               />
             </div>
           </div>
@@ -121,7 +186,7 @@ export default function KitchenModal({ isOpen, onClose, onSuccess }: KitchenModa
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center space-x-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 py-3.5 text-sm font-semibold text-white hover:from-blue-500 hover:to-indigo-500 transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50"
+            className="w-full flex items-center justify-center space-x-2 rounded-2xl bg-blue-600 py-3 text-sm font-bold text-white hover:bg-blue-700 transition-all shadow-md shadow-blue-600/20 disabled:opacity-50 mt-2"
           >
             <Plus className="h-4 w-4" />
             <span>Simpan Dapur MBG</span>

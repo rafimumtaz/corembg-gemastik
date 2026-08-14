@@ -9,9 +9,16 @@ export async function PATCH(
     const { id } = await params;
     const body = await req.json();
 
+    const updateData: any = { status: body.status };
+    if (body.recipientId) {
+      updateData.recipientId = body.recipientId;
+      updateData.claimedAt = new Date();
+    }
+
     const food = await prisma.foodStock.update({
       where: { id },
-      data: { status: body.status },
+      data: updateData,
+      include: { kitchen: true, recipient: true } as any,
     });
 
     return NextResponse.json({ success: true, data: food });

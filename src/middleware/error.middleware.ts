@@ -15,7 +15,7 @@ export const errorHandler = (
   }
 
   if (err instanceof ZodError) {
-    return sendError(res, 400, 'VALIDATION_ERROR', 'Invalid input data: ' + err.errors.map(e => e.message).join(', '));
+    return sendError(res, 400, 'VALIDATION_ERROR', 'Invalid input data: ' + err.issues.map((e: any) => e.message).join(', '));
   }
 
   console.error('Unhandled error:', err);

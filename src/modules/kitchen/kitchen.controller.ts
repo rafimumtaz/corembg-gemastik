@@ -25,7 +25,7 @@ export const getKitchens = async (req: Request, res: Response, next: NextFunctio
 
 export const getKitchenById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const kitchen = await prisma.kitchen.findUnique({
       where: { id },
     });
@@ -40,7 +40,7 @@ export const getKitchenById = async (req: Request, res: Response, next: NextFunc
 
 export const updateKitchen = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const kitchen = await prisma.kitchen.update({
       where: { id },
       data: req.body,
@@ -57,7 +57,7 @@ export const updateKitchen = async (req: Request, res: Response, next: NextFunct
 
 export const deleteKitchen = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     await prisma.kitchen.delete({
       where: { id },
     }).catch(() => {

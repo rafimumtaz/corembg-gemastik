@@ -25,7 +25,7 @@ export const getRecipients = async (req: Request, res: Response, next: NextFunct
 
 export const getRecipientById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const recipient = await prisma.recipient.findUnique({
       where: { id },
     });
@@ -40,7 +40,7 @@ export const getRecipientById = async (req: Request, res: Response, next: NextFu
 
 export const updateRecipient = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const recipient = await prisma.recipient.update({
       where: { id },
       data: req.body,
@@ -57,7 +57,7 @@ export const updateRecipient = async (req: Request, res: Response, next: NextFun
 
 export const deleteRecipient = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     await prisma.recipient.delete({
       where: { id },
     }).catch(() => {

@@ -7,7 +7,7 @@ import { ocrService } from '../../services/ocr.service.js';
 
 export const createFood = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { kitchenId, menuName, portionCount, cookedAt } = req.body;
+    const { kitchenId, menuName, portionCount, cookedAt, tags } = req.body;
     const cookedAtDate = new Date(cookedAt);
     const safeUntil = calculateSafeUntil(cookedAtDate);
 
@@ -15,10 +15,12 @@ export const createFood = async (req: Request, res: Response, next: NextFunction
       data: {
         kitchenId,
         menuName,
-        portionCount,
+        portionCount: parseInt(portionCount, 10),
         cookedAt: cookedAtDate,
         safeUntil,
+        tags: Array.isArray(tags) ? tags : [],
       },
+      include: { kitchen: true, recipient: true },
     });
 
     return sendSuccess(res, food, 201);
@@ -29,10 +31,13 @@ export const createFood = async (req: Request, res: Response, next: NextFunction
 
 export const getFoods = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { status, expired } = req.query;
+    const { status, expired, recipientId } = req.query;
     let where: any = {};
     if (status) {
-      where.status = status;
+      where.status = status as string;
+    }
+    if (recipientId) {
+      where.recipientId = recipientId as string;
     }
     if (expired === 'false') {
       where.safeUntil = {
@@ -40,7 +45,11 @@ export const getFoods = async (req: Request, res: Response, next: NextFunction) 
       };
     }
     
-    const foods = await prisma.foodStock.findMany({ where });
+    const foods = await prisma.foodStock.findMany({
+      where,
+      include: { kitchen: true, recipient: true },
+      orderBy: { createdAt: 'desc' },
+    });
     return sendSuccess(res, foods);
   } catch (error) {
     next(error);
@@ -49,9 +58,10 @@ export const getFoods = async (req: Request, res: Response, next: NextFunction) 
 
 export const getFoodById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const food = await prisma.foodStock.findUnique({
       where: { id },
+      include: { kitchen: true, recipient: true },
     });
     if (!food) {
       throw new AppError(404, 'FOOD_NOT_FOUND', 'Food stock not found');
@@ -64,12 +74,19 @@ export const getFoodById = async (req: Request, res: Response, next: NextFunctio
 
 export const updateFoodStatus = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
-    const { status } = req.body;
+    const id = req.params.id as string;
+    const { status, recipientId } = req.body;
     
+    const updateData: any = { status };
+    if (recipientId) {
+      updateData.recipientId = recipientId;
+      updateData.claimedAt = new Date();
+    }
+
     const food = await prisma.foodStock.update({
       where: { id },
-      data: { status },
+      data: updateData,
+      include: { kitchen: true, recipient: true },
     }).catch(() => null);
 
     if (!food) {
@@ -83,7 +100,7 @@ export const updateFoodStatus = async (req: Request, res: Response, next: NextFu
 
 export const deleteFood = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     await prisma.foodStock.delete({
       where: { id },
     }).catch(() => {
@@ -100,7 +117,7 @@ export const createFoodFromOcr = async (req: Request, res: Response, next: NextF
     if (!req.file) {
       throw new AppError(400, 'IMAGE_REQUIRED', 'Image is required');
     }
-    const { kitchenId, portionCount } = req.body;
+    const { kitchenId, portionCount, tags } = req.body;
     
     if (!kitchenId || !portionCount) {
       throw new AppError(400, 'INVALID_INPUT', 'kitchenId and portionCount are required');
@@ -124,7 +141,9 @@ export const createFoodFromOcr = async (req: Request, res: Response, next: NextF
         portionCount: parseInt(portionCount, 10),
         cookedAt: ocrResult.cookedAt,
         safeUntil,
+        tags: Array.isArray(tags) ? tags : [],
       },
+      include: { kitchen: true, recipient: true },
     });
 
     return sendSuccess(res, { ocr: ocrResult, food }, 201);
