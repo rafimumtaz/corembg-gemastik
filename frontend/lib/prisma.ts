@@ -2,6 +2,13 @@ import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 
+if (process.env.NODE_ENV !== 'production' && !process.env.DATABASE_URL) {
+  try {
+    require('dotenv').config({ path: '../.env' });
+  } catch (e) {
+    console.warn('Failed to load root .env file');
+  }
+}
 declare global {
   var prismaClientSingleton: PrismaClient | undefined;
 }
