@@ -2,7 +2,8 @@
   "name": "frontend",
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate --schema=../prisma/schema.prisma && next build",
+    "prebuild": "node -e \"const fs=require('fs'); fs.mkdirSync('prisma',{recursive:true}); fs.copyFileSync('../prisma/schema.prisma', 'prisma/schema.prisma');\"",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint"
   },
