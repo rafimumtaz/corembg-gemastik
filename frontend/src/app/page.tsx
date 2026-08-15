@@ -306,7 +306,7 @@ export default function Home() {
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
-              <Utensils className="h-4 w-4 text-blue-600" />
+              <Utensils className="h-4 w-4" />
               <span>Dapur MBG (Pengirim)</span>
             </button>
 
