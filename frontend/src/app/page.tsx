@@ -261,7 +261,11 @@ export default function Home() {
   });
 
   // Filtered Foods for Recipient (Claimable vs History)
-  const claimableFoods = foods.filter((f) => f.status === 'AVAILABLE');
+  const claimableFoods = foods.filter((f) => {
+    if (f.status !== 'AVAILABLE') return false;
+    if (!f.safeUntil) return true;
+    return new Date(f.safeUntil).getTime() > now;
+  });
   const claimedFoodsHistory = foods.filter(
     (f) => f.status === 'MATCHED' || f.status === 'DISTRIBUTED' || f.recipientId === activeRecipientId
   );

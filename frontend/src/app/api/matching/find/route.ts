@@ -111,10 +111,18 @@ export async function POST(req: Request) {
             tags: food.tags || [],
           };
         })
-        .filter((item) => item.distanceKm <= radius)
+        .filter((item) => {
+          if (item.distanceKm > radius) return false;
+          if (!item.safeUntil) return true;
+          return new Date(item.safeUntil).getTime() > Date.now();
+        })
         .sort((a, b) => a.distanceKm - b.distanceKm);
     } else {
-      matches = DEFAULT_MATCH_ITEMS.filter((item) => item.distanceKm <= radius);
+      matches = DEFAULT_MATCH_ITEMS.filter((item) => {
+        if (item.distanceKm > radius) return false;
+        if (!item.safeUntil) return true;
+        return new Date(item.safeUntil).getTime() > Date.now();
+      });
     }
 
     const hasMatches = matches.length > 0;
