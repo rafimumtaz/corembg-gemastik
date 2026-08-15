@@ -302,7 +302,7 @@ export default function Home() {
               onClick={() => setActiveRole('DAPUR')}
               className={`flex items-center space-x-2 rounded-full px-4 py-2 text-xs sm:text-sm font-bold transition-all ${
                 activeRole === 'DAPUR'
-                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200/60'
+                  ? 'bg-blue-700 text-white shadow-md shadow-blue-700/20'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
