@@ -62,7 +62,7 @@ export default function KitchenModal({ isOpen, onClose, onSuccess }: KitchenModa
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="w-full max-w-lg overflow-hidden rounded-3xl bg-white border border-slate-200 shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-6 py-4">
           <div className="flex items-center space-x-3">
