@@ -31,7 +31,7 @@ export async function GET() {
     const kitchens = await prisma.kitchen.findMany({
       orderBy: { createdAt: 'desc' },
     });
-    if (kitchens && kitchens.length > 0) {
+    if (kitchens) {
       return NextResponse.json({ success: true, data: kitchens });
     }
   } catch (error: any) {

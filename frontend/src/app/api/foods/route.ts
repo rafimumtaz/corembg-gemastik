@@ -129,7 +129,7 @@ export async function GET(req: Request) {
       orderBy: { createdAt: 'desc' },
     });
 
-    if (foods && foods.length > 0) {
+    if (foods) {
       return NextResponse.json({ success: true, data: foods });
     }
   } catch (error: any) {

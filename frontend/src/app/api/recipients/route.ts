@@ -33,7 +33,7 @@ export async function GET() {
     const recipients = await prisma.recipient.findMany({
       orderBy: { createdAt: 'desc' },
     });
-    if (recipients && recipients.length > 0) {
+    if (recipients) {
       return NextResponse.json({ success: true, data: recipients });
     }
   } catch (error: any) {

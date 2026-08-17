@@ -19,6 +19,7 @@ enum FoodStatus {
 enum RecipientType {
   PANTI
   PENERIMA
+  POSYANDU
 }
 
 model Kitchen {
